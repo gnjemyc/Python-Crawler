@@ -2,14 +2,29 @@ import requests
 from bs4 import BeautifulSoup
 
 
-def main():
-    resp = requests.get('https://movies.yahoo.com.tw/movie_thisweek.html')
-    soup = BeautifulSoup(resp.text, 'html.parser')
-    thisWeekNewMovie = soup.find_all('a',{'data-ga' : "['本週新片','本週新片_本週新片第1頁','圍雞總動員']"})
-    #print(thisWeekNewMovie)
-    for a in thisWeekNewMovie:
-        if a.text and not a.text.isspace() :
-            print(a.text.strip(),end=",")
+def get_thisWeek_newMovies():
 
+    webSite = 'https://movies.yahoo.com.tw/movie_thisweek.html'
+
+    while webSite:
+        resp = requests.get(webSite)
+        soup = BeautifulSoup(resp.text, 'html.parser')
+        thisWeekMoviePage = soup.find_all('div','release_movie_name')
+        #print(thisWeekMoviePage)
+        
+
+        for a in thisWeekMoviePage:
+            movieName = a.find('a')['data-ga']
+            index = movieName.rfind(',')
+            print('本周新片:' + movieName[index+1:-1])
+
+        nextPage = soup.find('li','nexttxt')
+
+        try:
+            if nextPage.find('a')['href'] :
+                webSite = nextPage.find('a')['href']
+        except TypeError:
+            break 
+    
 if __name__ == '__main__':
-    main()
+    get_thisWeek_newMovies()
